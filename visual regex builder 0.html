@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Regex Builder Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #007AFF;
+            --secondary: #5856D6;
+            --success: #34C759;
+            --warning: #FF9500;
+            --error: #FF3B30;
+            --bg-primary: #F2F2F7;
+            --bg-secondary: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border: #D1D1D6;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --glass: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1C1C1E;
+                --bg-secondary: #2C2C2E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #8E8E93;
+                --border: #38383A;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --glass: rgba(44, 44, 46, 0.8);
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 25px;
+            box-shadow: 0 20px 40px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 30px 60px var(--shadow);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            fill: var(--primary);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .visual-builder {
+            display: grid;
+            gap: 15px;
+        }
+
+        .builder-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 2px;
+            margin-right: 10px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .checkbox-item input {
+            margin-right: 8px;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .regex-display {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary);
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .regex-display::before {
+            content: 'Generated Regex Pattern';
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--bg-secondary);
+            padding: 0 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .test-area {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .test-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .test-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .matches {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+        }
+
+        .match-count {
+            font-weight: 600;
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+
+        .match-item {
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin: 5px 5px 5px 0;
+            display: inline-block;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9rem;
+        }
+
+        .explanation {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .explanation h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .explanation-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .explanation-pattern {
+            font-family: 'SF Mono', Monaco, monospace;
+            background: rgba(88, 86, 214, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056CC;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            transform: translateY(-1px);
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .preset-btn {
+            padding: 10px 15px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .flags {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .flag-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .flag-item input {
+            accent-color: var(--primary);
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 10px;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flow-builder {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 300px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .flow-node {
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            cursor: move;
+            display: inline-block;
+            transition: transform 0.2s ease;
+        }
+
+        .flow-node:hover {
+            transform: scale(1.05);
+        }
+
+        .error-display {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Visual Regex Builder Pro</h1>
+            <p>Construct complex regular expressions with visual tools and real-time testing</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <svg class="panel-icon" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <h2 class="panel-title">Visual Constructor</h2>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" data-tab="visual">Visual</div>
+                    <div class="tab" data-tab="flow">Flow</div>
+                    <div class="tab" data-tab="presets">Presets</div>
+                </div>
+
+                <div class="tab-content" id="visual-tab">
+                    <div class="visual-builder">
+                        <div class="builder-section">
+                            <div class="section-title">Character Classes</div>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="digits" data-pattern="\\d">
+                                    <label for="digits">Digits (0-9)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="letters" data-pattern="[a-zA-Z]">
+                                    <label for="letters">Letters (a-z, A-Z)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="whitespace" data-pattern="\\s">
+                                    <label for="whitespace">Whitespace</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="word" data-pattern="\\w">
+                                    <label for="word">Word characters</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="any" data-pattern=".">
+                                    <label for="any">Any character</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="alphanumeric" data-pattern="[a-zA-Z0-9]">
+                                    <label for="alphanumeric">Alphanumeric</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="builder-section">
+                            <div class="section-title">Quantifiers</div>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="one-or-more" data-pattern="+">
+                                    <label for="one-or-more">One or more (+)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="zero-or-more" data-pattern="*">
+                                    <label for="zero-or-more">Zero or more (*)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="optional" data-pattern="?">
+                                    <label for="optional">Optional (?)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="specific-count" data-pattern="{n}">
+                                    <label for="specific-count">Specific count {n}</label>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Custom Range {min,max}</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="number" id="min-count" placeholder="Min" class="input-field" style="flex: 1;">
+                                    <input type="number" id="max-count" placeholder="Max" class="input-field" style="flex: 1;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="builder-section">
+                            <div class="section-title">Anchors & Boundaries</div>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="start" data-pattern="^">
+                                    <label for="start">Start of string (^)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="end" data-pattern="$">
+                                    <label for="end">End of string ($)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="word-boundary" data-pattern="\\b">
+                                    <label for="word-boundary">Word boundary (\\b)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="non-word-boundary" data-pattern="\\B">
+                                    <label for="non-word-boundary">Non-word boundary (\\B)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="builder-section">
+                            <div class="section-title">Custom Pattern</div>
+                            <div class="input-group">
+                                <label class="input-label">Literal Text</label>
+                                <input type="text" id="literal-text" placeholder="Enter literal text to match" class="input-field">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Custom Character Class</label>
+                                <input type="text" id="custom-class" placeholder="e.g., [a-f0-9]" class="input-field">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="flow-tab" style="display: none;">
+                    <div class="flow-builder">
+                        <h3>Drag & Drop Flow Builder</h3>
+                        <p>Coming soon - Visual flow-based regex construction</p>
+                        <div style="margin-top: 20px;">
+                            <div class="flow-node">Start</div>
+                            <div class="flow-node">\\d+</div>
+                            <div class="flow-node">@</div>
+                            <div class="flow-node">\\w+</div>
+                            <div class="flow-node">\\.</div>
+                            <div class="flow-node">com</div>
+                            <div class="flow-node">End</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="presets-tab" style="display: none;">
+                    <div class="builder-section">
+                        <div class="section-title">Common Patterns</div>
+                        <div class="presets">
+                            <div class="preset-btn" data-regex="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$">Email</div>
+                            <div class="preset-btn" data-regex="^(\\+\\d{1,3}[- ]?)?\\d{10}$">Phone</div>
+                            <div class="preset-btn" data-regex="^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$">URL</div>
+                            <div class="preset-btn" data-regex="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d@$!%*?&]{8,}$">Strong Password</div>
+                            <div class="preset-btn" data-regex="^\\d{4}-\\d{2}-\\d{2}$">Date (YYYY-MM-DD)</div>
+                            <div class="preset-btn" data-regex="^([01]?\\d|2[0-3]):[0-5]\\d$">Time (HH:MM)</div>
+                            <div class="preset-btn" data-regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$">Hex Color</div>
+                            <div class="preset-btn" data-regex="^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$">IP Address</div>
+                            <div class="preset-btn" data-regex="^[A-Z]{2,3}\\d{2,4}$">License Plate</div>
+                            <div class="preset-btn" data-regex="^\\d{3}-\\d{2}-\\d{4}$">SSN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="builder-section">
+                    <div class="section-title">Regex Flags</div>
+                    <div class="flags">
+                        <div class="flag-item">
+                            <input type="checkbox" id="flag-g">
+                            <label for="flag-g">Global (g)</label>
+                        </div>
+                        <div class="flag-item">
+                            <input type="checkbox" id="flag-i">
+                            <label for="flag-i">Ignore case (i)</label>
+                        </div>
+                        <div class="flag-item">
+                            <input type="checkbox" id="flag-m">
+                            <label for="flag-m">Multiline (m)</label>
+                        </div>
+                        <div class="flag-item">
+                            <input type="checkbox" id="flag-s">
+                            <label for="flag-s">Dot all (s)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <svg class="panel-icon" viewBox="0 0 24 24">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <h2 class="panel-title">Testing & Results</h2>
+                </div>
+
+                <div class="regex-display" id="regex-output">
+                    /^$/g
+                </div>
+
+                <div class="test-area">
+                    <label class="input-label">Test Input</label>
+                    <textarea id="test-text" class="test-input" placeholder="Enter text to test against your regex pattern...
+Example text:
+john.doe@example.com
+jane_smith@test.org
+invalid-email@
++1-555-123-4567
+https://www.example.com"></textarea>
+                    
+                    <div class="matches" id="matches-display">
+                        <div class="match-count">0 matches found</div>
+                    </div>
+                </div>
+
+                <div class="performance-metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="exec-time">0ms</div>
+                        <div class="metric-label">Execution Time</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="match-count">0</div>
+                        <div class="metric-label">Matches</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="pattern-length">2</div>
+                        <div class="metric-label">Pattern Length</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="copy-regex">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy Regex
+                    </button>
+                    <button class="btn btn-secondary" id="clear-all">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        Clear All
+                    </button>
+                    <button class="btn btn-secondary" id="export-pattern">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <svg class="panel-icon" viewBox="0 0 24 24">
+                    <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h2 class="panel-title">Pattern Explanation</h2>
+            </div>
+            <div class="explanation" id="explanation-content">
+                <h3>How your regex works:</h3>
+                <div class="explanation-item">
+                    <span class="explanation-pattern">^</span> - Matches the start of the string
+                </div>
+                <div class="explanation-item">
+                    <span class="explanation-pattern">$</span> - Matches the end of the string
+                </div>
+                <p style="margin-top: 15px; color: var(--text-secondary);">
+                    This pattern matches empty strings only. Add components from the visual constructor to build more complex patterns.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        class VisualRegexBuilder {
+            constructor() {
+                this.currentRegex = '^$';
+                this.flags = '';
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateDisplay();
+                this.loadSampleData();
+            }
+
+            bindEvents() {
+                // Visual constructor checkboxes
+                const checkboxes = document.querySelectorAll('.checkbox-item input[type="checkbox"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => this.buildRegex());
+                });
+
+                // Custom inputs
+                document.getElementById('literal-text').addEventListener('input', () => this.buildRegex());
+                document.getElementById('custom-class').addEventListener('input', () => this.buildRegex());
+                document.getElementById('min-count').addEventListener('input', () => this.buildRegex());
+                document.getElementById('max-count').addEventListener('input', () => this.buildRegex());
+
+                // Test input
+                document.getElementById('test-text').addEventListener('input', () => this.testRegex());
+
+                // Flags
+                const flagCheckboxes = document.querySelectorAll('.flag-item input[type="checkbox"]');
+                flagCheckboxes.forEach(flag => {
+                    flag.addEventListener('change', () => this.updateFlags());
+                });
+
+                // Buttons
+                document.getElementById('copy-regex').addEventListener('click', () => this.copyRegex());
+                document.getElementById('clear-all').addEventListener('click', () => this.clearAll());
+                document.getElementById('export-pattern').addEventListener('click', () => this.exportPattern());
+
+                // Preset buttons
+                const presetButtons = document.querySelectorAll('.preset-btn');
+                presetButtons.forEach(btn => {
+                    btn.addEventListener('click', () => this.loadPreset(btn.dataset.regex));
+                });
+
+                // Tab switching
+                const tabs = document.querySelectorAll('.tab');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+            }
+
+            buildRegex() {
+                let pattern = '';
+                const components = [];
+
+                // Check anchors first
+                if (document.getElementById('start').checked) {
+                    components.push('^');
+                }
+
+                // Build main pattern
+                let mainPattern = '';
+
+                // Add literal text if provided
+                const literalText = document.getElementById('literal-text').value;
+                if (literalText) {
+                    mainPattern += this.escapeRegex(literalText);
+                }
+
+                // Add character classes
+                const characterClasses = [];
+                if (document.getElementById('digits').checked) characterClasses.push('\\d');
+                if (document.getElementById('letters').checked) characterClasses.push('[a-zA-Z]');
+                if (document.getElementById('whitespace').checked) characterClasses.push('\\s');
+                if (document.getElementById('word').checked) characterClasses.push('\\w');
+                if (document.getElementById('any').checked) characterClasses.push('.');
+                if (document.getElementById('alphanumeric').checked) characterClasses.push('[a-zA-Z0-9]');
+
+                // Add custom character class
+                const customClass = document.getElementById('custom-class').value;
+                if (customClass) {
+                    characterClasses.push(customClass);
+                }
+
+                if (characterClasses.length > 0) {
+                    if (characterClasses.length === 1) {
+                        mainPattern += characterClasses[0];
+                    } else {
+                        mainPattern += `(${characterClasses.join('|')})`;
+                    }
+                }
+
+                // Add word boundaries
+                if (document.getElementById('word-boundary').checked) {
+                    mainPattern = '\\b' + mainPattern + '\\b';
+                }
+                if (document.getElementById('non-word-boundary').checked) {
+                    mainPattern = '\\B' + mainPattern + '\\B';
+                }
+
+                // Add quantifiers
+                if (mainPattern) {
+                    if (document.getElementById('one-or-more').checked) {
+                        mainPattern += '+';
+                    } else if (document.getElementById('zero-or-more').checked) {
+                        mainPattern += '*';
+                    } else if (document.getElementById('optional').checked) {
+                        mainPattern += '?';
+                    } else if (document.getElementById('specific-count').checked) {
+                        mainPattern += '{1}'; // Default to 1
+                    }
+
+                    // Custom range
+                    const minCount = document.getElementById('min-count').value;
+                    const maxCount = document.getElementById('max-count').value;
+                    if (minCount || maxCount) {
+                        if (minCount && maxCount) {
+                            mainPattern += `{${minCount},${maxCount}}`;
+                        } else if (minCount) {
+                            mainPattern += `{${minCount},}`;
+                        } else if (maxCount) {
+                            mainPattern += `{0,${maxCount}}`;
+                        }
+                    }
+                }
+
+                components.push(mainPattern);
+
+                // Add end anchor
+                if (document.getElementById('end').checked) {
+                    components.push('$');
+                }
+
+                pattern = components.join('');
+                
+                // If pattern is empty or just anchors, provide default
+                if (!pattern || pattern === '^' || pattern === '$' || pattern === '^$') {
+                    pattern = '^$';
+                }
+
+                this.currentRegex = pattern;
+                this.updateDisplay();
+                this.testRegex();
+            }
+
+            updateFlags() {
+                let flags = '';
+                if (document.getElementById('flag-g').checked) flags += 'g';
+                if (document.getElementById('flag-i').checked) flags += 'i';
+                if (document.getElementById('flag-m').checked) flags += 'm';
+                if (document.getElementById('flag-s').checked) flags += 's';
+                this.flags = flags;
+                this.updateDisplay();
+                this.testRegex();
+            }
+
+            updateDisplay() {
+                const regexDisplay = document.getElementById('regex-output');
+                regexDisplay.textContent = `/${this.currentRegex}/${this.flags}`;
+                
+                // Update pattern length metric
+                document.getElementById('pattern-length').textContent = this.currentRegex.length;
+                
+                this.explainPattern();
+            }
+
+            testRegex() {
+                const testText = document.getElementById('test-text').value;
+                const matchesDisplay = document.getElementById('matches-display');
+                
+                if (!testText) {
+                    matchesDisplay.innerHTML = '<div class="match-count">0 matches found</div>';
+                    document.getElementById('match-count').textContent = '0';
+                    document.getElementById('exec-time').textContent = '0ms';
+                    return;
+                }
+
+                try {
+                    const startTime = performance.now();
+                    const regex = new RegExp(this.currentRegex, this.flags);
+                    const matches = testText.match(regex);
+                    const endTime = performance.now();
+
+                    let matchCount = 0;
+                    let matchItems = [];
+                    
+                    if (matches) {
+                        matchCount = this.flags.includes('g') ? matches.length : 1;
+                        matchItems = this.flags.includes('g') 
+                            ? matches.slice(0, 10) 
+                            : [matches[0]];
+                    }
+
+                    const execTime = Math.round((endTime - startTime) * 100) / 100;
+
+                    // Update metrics
+                    document.getElementById('match-count').textContent = matchCount;
+                    document.getElementById('exec-time').textContent = `${execTime}ms`;
+
+                    // Display matches
+                    let matchHtml = `<div class="match-count">${matchCount} matches found</div>`;
+                    
+                    if (matchCount > 0) {
+                        matchItems.forEach(match => {
+                            matchHtml += `<span class="match-item">${this.escapeHtml(match)}</span>`;
+                        });
+                        
+                        if (matchCount > 10) {
+                            matchHtml += `<div style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9rem;">... and ${matchCount - 10} more matches</div>`;
+                        }
+                    }
+
+                    matchesDisplay.innerHTML = matchHtml;
+
+                    // Remove any error display
+                    const existingError = document.querySelector('.error-display');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+
+                } catch (error) {
+                    // Display error
+                    let errorHtml = `<div class="match-count">Invalid regex pattern</div>`;
+                    errorHtml += `<div class="error-display">Error: ${error.message}</div>`;
+                    matchesDisplay.innerHTML = errorHtml;
+                    
+                    document.getElementById('match-count').textContent = 'Error';
+                    document.getElementById('exec-time').textContent = 'N/A';
+                }
+            }
+
+            explainPattern() {
+                const explanationContent = document.getElementById('explanation-content');
+                const pattern = this.currentRegex;
+                let explanations = [];
+
+                // Common pattern explanations
+                const patterns = {
+                    '^': 'Matches the start of the string',
+                    '$': 'Matches the end of the string',
+                    '\\d': 'Matches any digit (0-9)',
+                    '\\D': 'Matches any non-digit character',
+                    '\\w': 'Matches any word character (letters, digits, underscore)',
+                    '\\W': 'Matches any non-word character',
+                    '\\s': 'Matches any whitespace character (space, tab, newline)',
+                    '\\S': 'Matches any non-whitespace character',
+                    '.': 'Matches any character except newline',
+                    '\\b': 'Matches a word boundary',
+                    '\\B': 'Matches a non-word boundary',
+                    '+': 'Matches one or more of the preceding element',
+                    '*': 'Matches zero or more of the preceding element',
+                    '?': 'Matches zero or one of the preceding element',
+                    '[a-zA-Z]': 'Matches any letter (uppercase or lowercase)',
+                    '[a-zA-Z0-9]': 'Matches any alphanumeric character',
+                    '[0-9]': 'Matches any digit'
+                };
+
+                // Analyze pattern
+                for (const [regexPart, explanation] of Object.entries(patterns)) {
+                    if (pattern.includes(regexPart)) {
+                        explanations.push({
+                            pattern: regexPart,
+                            explanation: explanation
+                        });
+                    }
+                }
+
+                // Check for quantifiers with ranges
+                const rangeMatch = pattern.match(/\{(\d+),?(\d+)?\}/);
+                if (rangeMatch) {
+                    const min = rangeMatch[1];
+                    const max = rangeMatch[2];
+                    if (max) {
+                        explanations.push({
+                            pattern: `{${min},${max}}`,
+                            explanation: `Matches between ${min} and ${max} of the preceding element`
+                        });
+                    } else {
+                        explanations.push({
+                            pattern: `{${min},}`,
+                            explanation: `Matches ${min} or more of the preceding element`
+                        });
+                    }
+                }
+
+                let html = '<h3>How your regex works:</h3>';
+                
+                if (explanations.length > 0) {
+                    explanations.forEach(item => {
+                        html += `<div class="explanation-item">
+                            <span class="explanation-pattern">${this.escapeHtml(item.pattern)}</span> - ${item.explanation}
+                        </div>`;
+                    });
+                } else {
+                    html += '<div class="explanation-item">This is a basic empty pattern that matches empty strings.</div>';
+                }
+
+                // Add flags explanation
+                if (this.flags) {
+                    html += '<div style="margin-top: 15px;"><strong>Flags:</strong></div>';
+                    if (this.flags.includes('g')) html += '<div class="explanation-item"><span class="explanation-pattern">g</span> - Global: find all matches</div>';
+                    if (this.flags.includes('i')) html += '<div class="explanation-item"><span class="explanation-pattern">i</span> - Case-insensitive matching</div>';
+                    if (this.flags.includes('m')) html += '<div class="explanation-item"><span class="explanation-pattern">m</span> - Multiline: ^ and $ match line breaks</div>';
+                    if (this.flags.includes('s')) html += '<div class="explanation-item"><span class="explanation-pattern">s</span> - Dot matches newlines too</div>';
+                }
+
+                explanationContent.innerHTML = html;
+            }
+
+            loadPreset(regexPattern) {
+                this.currentRegex = regexPattern;
+                this.clearAllInputs();
+                this.updateDisplay();
+                this.testRegex();
+                this.showToast('Preset pattern loaded successfully!');
+            }
+
+            clearAll() {
+                this.currentRegex = '^$';
+                this.flags = '';
+                this.clearAllInputs();
+                document.getElementById('test-text').value = '';
+                document.getElementById('matches-display').innerHTML = '<div class="match-count">0 matches found</div>';
+                document.getElementById('match-count').textContent = '0';
+                document.getElementById('exec-time').textContent = '0ms';
+                this.updateDisplay();
+                this.showToast('All fields cleared!');
+            }
+
+            clearAllInputs() {
+                // Clear all checkboxes
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+
+                // Clear text inputs
+                document.getElementById('literal-text').value = '';
+                document.getElementById('custom-class').value = '';
+                document.getElementById('min-count').value = '';
+                document.getElementById('max-count').value = '';
+            }
+
+            copyRegex() {
+                const regexText = `/${this.currentRegex}/${this.flags}`;
+                navigator.clipboard.writeText(regexText).then(() => {
+                    this.showToast('Regex copied to clipboard!');
+                }).catch(() => {
+                    this.showToast('Failed to copy regex');
+                });
+            }
+
+            exportPattern() {
+                const exportData = {
+                    pattern: this.currentRegex,
+                    flags: this.flags,
+                    testInput: document.getElementById('test-text').value,
+                    created: new Date().toISOString(),
+                    description: 'Generated by Visual Regex Builder Pro'
+                };
+
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'regex-pattern.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                this.showToast('Pattern exported successfully!');
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+
+                // Show/hide tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(`${tabName}-tab`).style.display = 'block';
+            }
+
+            loadSampleData() {
+                document.getElementById('test-text').value = `john.doe@example.com
+jane_smith@test.org  
+invalid-email@
++1-555-123-4567
+(555) 123-4567
+https://www.example.com
+http://test.org/path?param=value
+192.168.1.1
+256.300.400.500
+Password123!
+weakpass
+#FF5733
+#abc
+2024-03-15
+15/03/2024
+12:34
+25:99`;
+            }
+
+            escapeRegex(text) {
+                return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            escapeHtml(text) {
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            showToast(message) {
+                const toast = document.getElementById('toast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new VisualRegexBuilder();
+        });
+
+        // Add some interactive enhancements
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add floating animation to header
+            const header = document.querySelector('.header h1');
+            let mouseX = 0, mouseY = 0;
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX / window.innerWidth;
+                mouseY = e.clientY / window.innerHeight;
+                
+                const moveX = (mouseX - 0.5) * 20;
+                const moveY = (mouseY - 0.5) * 20;
+                
+                header.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'c':
+                            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                                e.preventDefault();
+                                document.getElementById('copy-regex').click();
+                            }
+                            break;
+                        case 'k':
+                            e.preventDefault();
+                            document.getElementById('clear-all').click();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            document.getElementById('export-pattern').click();
+                            break;
+                    }
+                }
+            });
+
+            // Add panel animations on scroll
+            const panels = document.querySelectorAll('.panel');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeInUp 0.6s ease-out';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            panels.forEach(panel => observer.observe(panel));
+        });
+    </script>
+</body>
+</html>
