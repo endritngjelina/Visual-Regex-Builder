@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Regex Builder Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .mode-switcher {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mode-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .mode-btn:not(.active) {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .mode-btn:not(.active):hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+
+        .visual-builder {
+            display: none;
+        }
+
+        .visual-builder.active {
+            display: block;
+        }
+
+        .component-group {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .component-group:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .component-group h3 {
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .component-btn {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .component-btn:hover {
+            border-color: #667eea;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .flow-builder {
+            min-height: 300px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 2rem;
+            background: linear-gradient(45deg, #f8fafc 25%, transparent 25%), 
+                        linear-gradient(-45deg, #f8fafc 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #f8fafc 75%), 
+                        linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            position: relative;
+        }
+
+        .flow-node {
+            display: inline-block;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            cursor: move;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .flow-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .flow-node .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flow-node:hover .remove-btn {
+            display: flex;
+        }
+
+        .regex-display {
+            background: #2d3748;
+            color: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+            border: 2px solid #4a5568;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .regex-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .test-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .test-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .matches {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .match {
+            background: #c6f6d5;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid #48bb78;
+        }
+
+        .explanation {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .explanation h4 {
+            color: #2b6cb0;
+            margin-bottom: 0.5rem;
+        }
+
+        .flags {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .flag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flag input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: #667eea;
+        }
+
+        .advanced-options {
+            background: #faf5ff;
+            border: 2px solid #b794f6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .option-group {
+            margin-bottom: 1rem;
+        }
+
+        .option-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #553c9a;
+        }
+
+        .option-group input, .option-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d6bcfa;
+            border-radius: 4px;
+        }
+
+        .preset-patterns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .preset-btn {
+            padding: 0.75rem 0.5rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel {
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .components {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        .syntax-highlight {
+            color: #e53e3e;
+        }
+
+        .group-highlight {
+            color: #38a169;
+        }
+
+        .quantifier-highlight {
+            color: #d69e2e;
+        }
+
+        .anchor-highlight {
+            color: #3182ce;
+        }
+        
+        .character-highlight {
+            color: #d6bcfa;
+        }
+        
+        .special-highlight {
+            color: #63b3ed;
+        }
+        
+        .flow-node-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 120px;
+        }
+        
+        .flow-connector {
+            display: inline-block;
+            margin: 0 4px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .flow-node-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+        
+        .pattern-complexity {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .complexity-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+        
+        .complexity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #e53e3e);
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Visual Regex Builder Pro</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="panel">
+            <h2 class="panel-title">Pattern Builder</h2>
+            
+            <div class="mode-switcher">
+                <button class="mode-btn active" onclick="switchMode('visual')">Visual Builder</button>
+                <button class="mode-btn" onclick="switchMode('flow')">Flow Builder</button>
+                <button class="mode-btn" onclick="switchMode('text')">Text Editor</button>
+            </div>
+
+            <div id="visual-builder" class="visual-builder active">
+                <div class="component-group">
+                    <h3>🎯 Characters & Literals</h3>
+                    <div class="components">
+                        <div class="component-btn" onclick="addComponent('literal', 'Any Text')" title="Match literal text">Any Text</div>
+                        <div class="component-btn" onclick="addComponent('.', 'Any Character')" title="Match any single character">Any Character</div>
+                        <div class="component-btn" onclick="addComponent('\\d', 'Digit')" title="Match any digit (0-9)">Digit (0-9)</div>
+                        <div class="component-btn" onclick="addComponent('\\w', 'Word Character')" title="Match word characters (a-z, A-Z, 0-9, _)">Word Character</div>
+                        <div class="component-btn" onclick="addComponent('\\s', 'Whitespace')" title="Match whitespace characters">Whitespace</div>
+                        <div class="component-btn" onclick="addComponent('[a-z]', 'Lowercase')" title="Match lowercase letters">Lowercase</div>
+                        <div class="component-btn" onclick="addComponent('[A-Z]', 'Uppercase')" title="Match uppercase letters">Uppercase</div>
+                        <div class="component-btn" onclick="addComponent('[0-9]', 'Numbers')" title="Match numeric digits">Numbers</div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>🔢 Quantifiers</h3>
+                    <div class="components">
+                        <div class="component-btn" onclick="addQuantifier('*')" title="Zero or more">Zero or More (*)</div>
+                        <div class="component-btn" onclick="addQuantifier('+')" title="One or more">One or More (+)</div>
+                        <div class="component-btn" onclick="addQuantifier('?')" title="Zero or one">Optional (?)</div>
+                        <div class="component-btn" onclick="addQuantifier('{n}')" title="Exactly n times">Exactly N ({n})</div>
+                        <div class="component-btn" onclick="addQuantifier('{n,}')" title="N or more times">N or More ({n,})</div>
+                        <div class="component-btn" onclick="addQuantifier('{n,m}')" title="Between n and m times">Range ({n,m})</div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>🎭 Groups & Assertions</h3>
+                    <div class="components">
+                        <div class="component-btn" onclick="addComponent('()', 'Capture Group')" title="Create a capture group">Capture Group</div>
+                        <div class="component-btn" onclick="addComponent('(?:)', 'Non-Capture Group')" title="Create a non-capturing group">Non-Capture Group</div>
+                        <div class="component-btn" onclick="addComponent('^', 'Start')" title="Start of string/line">Start of Line (^)</div>
+                        <div class="component-btn" onclick="addComponent('$', 'End')" title="End of string/line">End of Line ($)</div>
+                        <div class="component-btn" onclick="addComponent('\\b', 'Word Boundary')" title="Word boundary">Word Boundary</div>
+                        <div class="component-btn" onclick="addComponent('(?=)', 'Positive Lookahead')" title="Positive lookahead assertion">Positive Lookahead</div>
+                        <div class="component-btn" onclick="addComponent('(?!)', 'Negative Lookahead')" title="Negative lookahead assertion">Negative Lookahead</div>
+                        <div class="component-btn" onclick="addComponent('|', 'Alternation')" title="OR operator">OR (|)</div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>📋 Common Patterns</h3>
+                    <div class="preset-patterns">
+                        <div class="preset-btn" onclick="loadPreset('email')" title="Email address pattern">📧 Email</div>
+                        <div class="preset-btn" onclick="loadPreset('phone')" title="Phone number pattern">📞 Phone</div>
+                        <div class="preset-btn" onclick="loadPreset('url')" title="URL pattern">🔗 URL</div>
+                        <div class="preset-btn" onclick="loadPreset('ip')" title="IP address pattern">🌐 IP Address</div>
+                        <div class="preset-btn" onclick="loadPreset('date')" title="Date pattern">📅 Date</div>
+                        <div class="preset-btn" onclick="loadPreset('time')" title="Time pattern">🕒 Time</div>
+                        <div class="preset-btn" onclick="loadPreset('hex')" title="Hex color pattern">🎨 Hex Color</div>
+                        <div class="preset-btn" onclick="loadPreset('password')" title="Strong password pattern">🔐 Password</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="flow-builder" class="visual-builder">
+                <div class="flow-builder" id="flowCanvas">
+                    <div class="flow-node-container" id="flowNodeContainer">
+                        <p style="text-align: center; color: #718096; width: 100%; margin-top: 100px;">
+                            🎨 Drag components here to build your regex visually
+                        </p>
+                    </div>
+                </div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="tool-btn" onclick="addFlowConnector('')">+</button>
+                    <button class="tool-btn" onclick="addFlowConnector('|')">OR</button>
+                    <button class="tool-btn" onclick="addFlowConnector('?')">Optional</button>
+                    <button class="tool-btn" onclick="addFlowConnector('*')">Repeat</button>
+                </div>
+            </div>
+
+            <div id="text-builder" class="visual-builder">
+                <textarea class="test-input" id="regexTextInput" placeholder="Enter your regex pattern here..." style="height: 200px; font-family: 'Consolas', monospace;" oninput="updateFromText()"></textarea>
+                
+                <div class="advanced-options">
+                    <h4 style="margin-bottom: 1rem; color: #553c9a;">Advanced Options</h4>
+                    <div class="option-group">
+                        <label>Pattern Complexity Analysis:</label>
+                        <div id="complexityAnalysis" class="pattern-complexity">
+                            Enter a pattern to see complexity analysis
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <button class="tool-btn" onclick="clearPattern()">🗑️ Clear</button>
+                <button class="tool-btn" onclick="undoLast()">↶ Undo</button>
+                <button class="tool-btn" onclick="copyRegex()">📋 Copy</button>
+                <button class="tool-btn" onclick="savePattern()">💾 Save</button>
+                <button class="tool-btn" onclick="loadPattern()">📁 Load</button>
+            </div>
+
+            <div class="flags">
+                <div class="flag">
+                    <input type="checkbox" id="globalFlag" onchange="updateFlags()">
+                    <label for="globalFlag">Global (g)</label>
+                </div>
+                <div class="flag">
+                    <input type="checkbox" id="ignoreCaseFlag" onchange="updateFlags()">
+                    <label for="ignoreCaseFlag">Ignore Case (i)</label>
+                </div>
+                <div class="flag">
+                    <input type="checkbox" id="multilineFlag" onchange="updateFlags()">
+                    <label for="multilineFlag">Multiline (m)</label>
+                </div>
+                <div class="flag">
+                    <input type="checkbox" id="dotAllFlag" onchange="updateFlags()">
+                    <label for="dotAllFlag">Dot All (s)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2 class="panel-title">Pattern Testing & Results</h2>
+            
+            <div class="regex-display" id="regexDisplay">
+                <span class="syntax-highlight">/</span><span id="regexPattern">^$</span><span class="syntax-highlight">/</span><span id="regexFlags"></span>
+            </div>
+
+            <textarea class="test-input" id="testInput" placeholder="Enter test text here to see matches..." rows="6" oninput="testPattern()"></textarea>
+
+            <div class="explanation" id="explanation">
+                <h4>📚 Pattern Explanation</h4>
+                <p>Build a pattern to see its explanation here</p>
+            </div>
+
+            <div class="matches" id="matches">
+                <h4>✨ Matches Found</h4>
+                <p>No matches found</p>
+            </div>
+
+            <div class="advanced-options">
+                <h4 style="margin-bottom: 1rem; color: #553c9a;">Pattern Analysis</h4>
+                <div id="patternStats" style="background: white; padding: 1rem; border-radius: 4px;">
+                    <div><strong>Length:</strong> <span id="patternLength">0</span> characters</div>
+                    <div><strong>Groups:</strong> <span id="groupCount">0</span></div>
+                    <div><strong>Quantifiers:</strong> <span id="quantifierCount">0</span></div>
+                    <div><strong>Complexity:</strong> <span id="complexityScore">Simple</span></div>
+                    <div class="complexity-bar">
+                        <div class="complexity-fill" id="complexityFill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPattern = '';
+        let patternHistory = [];
+        let currentMode = 'visual';
+        let flowNodes = [];
+        let flowConnectors = [];
+
+        const presetPatterns = {
+            email: {
+                pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+                explanation: 'Matches email addresses with standard format'
+            },
+            phone: {
+                pattern: '^(\\+?1-?)?\\(?([0-9]{3})\\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$',
+                explanation: 'Matches US phone numbers in various formats'
+            },
+            url: {
+                pattern: '^https?:\\/\\/(?:[-\\w.])+(?:\\:[0-9]+)?(?:\\/(?:[\\w\\/_.])*(?:\\?(?:[\\w&=%.])*)?(?:#(?:[\\w.])*)?)?$',
+                explanation: 'Matches HTTP and HTTPS URLs'
+            },
+            ip: {
+                pattern: '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',
+                explanation: 'Matches IPv4 addresses (0.0.0.0 to 255.255.255.255)'
+            },
+            date: {
+                pattern: '^(0[1-9]|1[012])[\\/\\-](0[1-9]|[12][0-9]|3[01])[\\/\\-](19|20)\\d\\d$',
+                explanation: 'Matches dates in MM/DD/YYYY or MM-DD-YYYY format'
+            },
+            time: {
+                pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?( ?[AaPp][Mm])?$',
+                explanation: 'Matches time in 12 or 24 hour format'
+            },
+            hex: {
+                pattern: '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+                explanation: 'Matches hexadecimal color codes (#RGB or #RRGGBB)'
+            },
+            password: {
+                pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$',
+                explanation: 'Strong password: 8+ chars, uppercase, lowercase, digit, special char'
+            }
+        };
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.visual-builder').forEach(builder => builder.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(mode + '-builder').classList.add('active');
+            
+            if (mode === 'flow') {
+                renderFlowNodes();
+            }
+        }
+
+        function addComponent(pattern, label) {
+            if (currentMode === 'flow') {
+                addFlowNode(pattern, label);
+                return;
+            }
+            
+            patternHistory.push(currentPattern);
+            
+            if (pattern === 'literal') {
+                const text = prompt('Enter the text to match literally:');
+                if (text) {
+                    currentPattern += escapeRegex(text);
+                }
+            } else {
+                currentPattern += pattern;
+            }
+            
+            updateDisplay();
+        }
+
+        function addFlowNode(pattern, label) {
+            let actualPattern = pattern;
+            let displayLabel = label;
+            
+            if (pattern === 'literal') {
+                const text = prompt('Enter the text to match literally:');
+                if (!text) return;
+                actualPattern = escapeRegex(text);
+                displayLabel = `"${text}"`;
+            } else if (pattern === '{n}') {
+                const n = prompt('Enter the exact number of repetitions:');
+                if (n && !isNaN(n)) {
+                    actualPattern = `{${n}}`;
+                    displayLabel = `Exactly ${n}`;
+                } else {
+                    return;
+                }
+            } else if (pattern === '{n,}') {
+                const n = prompt('Enter the minimum number of repetitions:');
+                if (n && !isNaN(n)) {
+                    actualPattern = `{${n},}`;
+                    displayLabel = `At least ${n}`;
+                } else {
+                    return;
+                }
+            } else if (pattern === '{n,m}') {
+                const n = prompt('Enter the minimum number:');
+                const m = prompt('Enter the maximum number:');
+                if (n && m && !isNaN(n) && !isNaN(m)) {
+                    actualPattern = `{${n},${m}}`;
+                    displayLabel = `${n} to ${m}`;
+                } else {
+                    return;
+                }
+            }
+            
+            flowNodes.push({
+                pattern: actualPattern,
+                label: displayLabel
+            });
+            
+            renderFlowNodes();
+            updatePatternFromFlow();
+        }
+
+        function addFlowConnector(connector) {
+            if (flowNodes.length === 0) return;
+            
+            flowConnectors.push(connector);
+            renderFlowNodes();
+            updatePatternFromFlow();
+        }
+
+        function renderFlowNodes() {
+            const container = document.getElementById('flowNodeContainer');
+            container.innerHTML = '';
+            
+            if (flowNodes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096; width: 100%; margin-top: 100px;">🎨 Drag components here to build your regex visually</p>';
+                return;
+            }
+            
+            flowNodes.forEach((node, index) => {
+                const nodeWrapper = document.createElement('div');
+                nodeWrapper.className = 'flow-node-wrapper';
+                
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'flow-node';
+                nodeEl.textContent = node.label;
+                nodeEl.draggable = true;
+                nodeEl.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', index);
+                };
+                nodeEl.ondragover = (e) => e.preventDefault();
+                nodeEl.ondrop = (e) => {
+                    e.preventDefault();
+                    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    moveFlowNode(fromIndex, index);
+                };
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = () => {
+                    flowNodes.splice(index, 1);
+                    renderFlowNodes();
+                    updatePatternFromFlow();
+                };
+                
+                nodeEl.appendChild(removeBtn);
+                nodeWrapper.appendChild(nodeEl);
+                container.appendChild(nodeWrapper);
+                
+                // Add connector if needed
+                if (index < flowNodes.length - 1 && flowConnectors[index]) {
+                    const connector = document.createElement('span');
+                    connector.className = 'flow-connector';
+                    connector.textContent = flowConnectors[index] || '';
+                    container.appendChild(connector);
+                }
+            });
+        }
+
+        function moveFlowNode(fromIndex, toIndex) {
+            if (fromIndex === toIndex) return;
+            
+            // Move the node
+            const node = flowNodes.splice(fromIndex, 1)[0];
+            flowNodes.splice(toIndex, 0, node);
+            
+            // Move the connector
+            if (fromIndex < flowConnectors.length) {
+                const connector = flowConnectors.splice(fromIndex, 1)[0];
+                flowConnectors.splice(toIndex, 0, connector);
+            }
+            
+            renderFlowNodes();
+            updatePatternFromFlow();
+        }
+
+        function updatePatternFromFlow() {
+            let pattern = '';
+            
+            flowNodes.forEach((node, index) => {
+                pattern += node.pattern;
+                if (index < flowConnectors.length && flowConnectors[index]) {
+                    pattern += flowConnectors[index];
+                }
+            });
+            
+            currentPattern = pattern;
+            updateDisplay();
+        }
+
+        function addQuantifier(quantifier) {
+            if (currentPattern === '') {
+                alert('Add a character or group first before applying a quantifier');
+                return;
+            }
+            
+            patternHistory.push(currentPattern);
+            
+            if (quantifier === '{n}') {
+                const n = prompt('Enter the exact number of repetitions:');
+                if (n && !isNaN(n)) {
+                    currentPattern += `{${n}}`;
+                }
+            } else if (quantifier === '{n,}') {
+                const n = prompt('Enter the minimum number of repetitions:');
+                if (n && !isNaN(n)) {
+                    currentPattern += `{${n},}`;
+                }
+            } else if (quantifier === '{n,m}') {
+                const n = prompt('Enter the minimum number:');
+                const m = prompt('Enter the maximum number:');
+                if (n && m && !isNaN(n) && !isNaN(m)) {
+                    currentPattern += `{${n},${m}}`;
+                }
+            } else {
+                currentPattern += quantifier;
+            }
+            
+            updateDisplay();
+        }
+
+        function loadPreset(type) {
+            patternHistory.push(currentPattern);
+            const preset = presetPatterns[type];
+            currentPattern = preset.pattern;
+            updateDisplay();
+            
+            // Update explanation
+            document.getElementById('explanation').innerHTML = `
+                <h4>📚 Pattern Explanation</h4>
+                <p><strong>${type.toUpperCase()}:</strong> ${preset.explanation}</p>
+                <p><strong>Pattern:</strong> ${highlightSyntax(preset.pattern)}</p>
+            `;
+        }
+
+        function updateDisplay() {
+            const patternElement = document.getElementById('regexPattern');
+            const flags = getFlags();
+            
+            patternElement.innerHTML = highlightSyntax(currentPattern || '^$');
+            document.getElementById('regexFlags').textContent = flags;
+            document.getElementById('regexTextInput').value = currentPattern;
+            
+            updateExplanation();
+            updateStats();
+            testPattern();
+            updateComplexityAnalysis();
+        }
+
+        function highlightSyntax(pattern) {
+            return pattern
+                .replace(/([\[\](){}])/g, '<span class="group-highlight">$1</span>')
+                .replace(/([*+?{},])/g, '<span class="quantifier-highlight">$1</span>')
+                .replace(/([\^$])/g, '<span class="anchor-highlight">$1</span>')
+                .replace(/(\\.)/g, '<span class="special-highlight">$1</span>')
+                .replace(/([a-zA-Z0-9])/g, '<span class="character-highlight">$1</span>');
+        }
+
+        function getFlags() {
+            let flags = '';
+            if (document.getElementById('globalFlag').checked) flags += 'g';
+            if (document.getElementById('ignoreCaseFlag').checked) flags += 'i';
+            if (document.getElementById('multilineFlag').checked) flags += 'm';
+            if (document.getElementById('dotAllFlag').checked) flags += 's';
+            return flags;
+        }
+
+        function updateFlags() {
+            updateDisplay();
+        }
+
+        function testPattern() {
+            const testText = document.getElementById('testInput').value;
+            const matchesDiv = document.getElementById('matches');
+            
+            if (!currentPattern || !testText) {
+                matchesDiv.innerHTML = '<h4>✨ Matches Found</h4><p>No matches found</p>';
+                return;
+            }
+            
+            try {
+                const regex = new RegExp(currentPattern, getFlags());
+                const matches = testText.match(regex) || [];
+                const globalMatches = [...testText.matchAll(new RegExp(currentPattern, getFlags() + 'g'))];
+                
+                if (globalMatches.length > 0) {
+                    let html = '<h4>✨ Matches Found</h4>';
+                    globalMatches.forEach((match, index) => {
+                        html += `<div class="match">
+                            <strong>Match ${index + 1}:</strong> "${match[0]}"
+                            <br><small>Position: ${match.index} | Length: ${match[0].length}</small>
+                        </div>`;
+                    });
+                    matchesDiv.innerHTML = html;
+                } else {
+                    matchesDiv.innerHTML = '<h4>✨ Matches Found</h4><p>No matches found</p>';
+                }
+            } catch (e) {
+                matchesDiv.innerHTML = `<h4>✨ Matches Found</h4><p>Error: ${e.message}</p>`;
+            }
+        }
+
+        function updateExplanation() {
+            const explanationEl = document.getElementById('explanation');
+            
+            if (!currentPattern) {
+                explanationEl.innerHTML = '<h4>📚 Pattern Explanation</h4><p>Build a pattern to see its explanation here</p>';
+                return;
+            }
+            
+            let explanation = '';
+            
+            // Basic explanation based on pattern components
+            if (currentPattern.includes('^')) explanation += '• Matches the start of a line or string<br>';
+            if (currentPattern.includes('$')) explanation += '• Matches the end of a line or string<br>';
+            if (currentPattern.includes('.')) explanation += '• Matches any single character<br>';
+            if (currentPattern.includes('\\d')) explanation += '• Matches any digit (0-9)<br>';
+            if (currentPattern.includes('\\w')) explanation += '• Matches any word character (a-z, A-Z, 0-9, _)<br>';
+            if (currentPattern.includes('\\s')) explanation += '• Matches any whitespace character<br>';
+            if (currentPattern.includes('*')) explanation += '• Matches 0 or more repetitions<br>';
+            if (currentPattern.includes('+')) explanation += '• Matches 1 or more repetitions<br>';
+            if (currentPattern.includes('?')) explanation += '• Makes the preceding element optional<br>';
+            if (currentPattern.includes('{')) explanation += '• Specifies exact repetition counts<br>';
+            if (currentPattern.includes('[') && currentPattern.includes(']')) explanation += '• Matches any character within the brackets<br>';
+            if (currentPattern.includes('(') && currentPattern.includes(')')) explanation += '• Defines a capturing group<br>';
+            if (currentPattern.includes('|')) explanation += '• Acts as an OR operator<br>';
+            if (currentPattern.includes('\\b')) explanation += '• Matches a word boundary<br>';
+            
+            if (explanation === '') {
+                explanation = '• Literal text matching<br>';
+            }
+            
+            explanationEl.innerHTML = `
+                <h4>📚 Pattern Explanation</h4>
+                <p><strong>Pattern:</strong> ${highlightSyntax(currentPattern)}</p>
+                <p><strong>Explanation:</strong></p>
+                <p>${explanation}</p>
+            `;
+        }
+
+        function updateStats() {
+            document.getElementById('patternLength').textContent = currentPattern.length;
+            
+            // Count groups
+            const groupCount = (currentPattern.match(/\(/g) || []).length;
+            document.getElementById('groupCount').textContent = groupCount;
+            
+            // Count quantifiers
+            const quantifierCount = (currentPattern.match(/[*+?{]/g) || []).length;
+            document.getElementById('quantifierCount').textContent = quantifierCount;
+            
+            // Calculate complexity
+            let complexity = 'Simple';
+            let complexityValue = 0;
+            
+            if (currentPattern.length > 50) complexityValue += 30;
+            if (currentPattern.length > 100) complexityValue += 30;
+            
+            if (groupCount > 3) complexityValue += 20;
+            if (groupCount > 5) complexityValue += 20;
+            
+            if (quantifierCount > 3) complexityValue += 20;
+            if (quantifierCount > 5) complexityValue += 20;
+            
+            if (currentPattern.includes('(?') || currentPattern.includes('|')) complexityValue += 20;
+            
+            complexityValue = Math.min(100, complexityValue);
+            
+            if (complexityValue > 70) complexity = 'Very Complex';
+            else if (complexityValue > 50) complexity = 'Complex';
+            else if (complexityValue > 30) complexity = 'Moderate';
+            
+            document.getElementById('complexityScore').textContent = complexity;
+            document.getElementById('complexityFill').style.width = complexityValue + '%';
+        }
+
+        function updateComplexityAnalysis() {
+            const analysisEl = document.getElementById('complexityAnalysis');
+            
+            if (!currentPattern) {
+                analysisEl.innerHTML = 'Enter a pattern to see complexity analysis';
+                return;
+            }
+            
+            let analysis = '';
+            const length = currentPattern.length;
+            
+            if (length < 10) {
+                analysis = 'Very simple pattern';
+            } else if (length < 30) {
+                analysis = 'Simple pattern';
+            } else if (length < 60) {
+                analysis = 'Moderately complex pattern';
+            } else {
+                analysis = 'Complex pattern';
+            }
+            
+            analysis += `<br>Length: ${length} characters`;
+            
+            // Count special characters
+            const specialChars = currentPattern.replace(/[a-zA-Z0-9]/g, '').length;
+            const specialPercent = Math.round((specialChars / length) * 100);
+            analysis += `<br>Special characters: ${specialChars} (${specialPercent}%)`;
+            
+            // Check for potential performance issues
+            if (currentPattern.includes('.*') || currentPattern.includes('.+')) {
+                analysis += '<br>⚠️ Contains potential performance issues (greedy quantifiers)';
+            }
+            
+            if (currentPattern.includes('(.*)*') || currentPattern.includes('(.+)+')) {
+                analysis += '<br>⚠️ Contains catastrophic backtracking risk';
+            }
+            
+            analysisEl.innerHTML = analysis;
+        }
+
+        function escapeRegex(text) {
+            return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function clearPattern() {
+            if (confirm('Are you sure you want to clear the current pattern?')) {
+                patternHistory.push(currentPattern);
+                currentPattern = '';
+                flowNodes = [];
+                flowConnectors = [];
+                updateDisplay();
+            }
+        }
+
+        function undoLast() {
+            if (patternHistory.length > 0) {
+                currentPattern = patternHistory.pop();
+                updateDisplay();
+            }
+        }
+
+        function copyRegex() {
+            const flags = getFlags();
+            const fullRegex = `/${currentPattern}/${flags}`;
+            
+            navigator.clipboard.writeText(fullRegex).then(() => {
+                alert('Regex copied to clipboard!');
+            });
+        }
+
+        function savePattern() {
+            const patternName = prompt('Enter a name for your pattern:');
+            if (!patternName) return;
+            
+            const patternData = {
+                name: patternName,
+                pattern: currentPattern,
+                flags: getFlags(),
+                timestamp: new Date().toISOString()
+            };
+            
+            let savedPatterns = JSON.parse(localStorage.getItem('regexPatterns') || []);
+            savedPatterns.push(patternData);
+            localStorage.setItem('regexPatterns', JSON.stringify(savedPatterns));
+            
+            alert(`Pattern "${patternName}" saved successfully!`);
+        }
+
+        function loadPattern() {
+            const savedPatterns = JSON.parse(localStorage.getItem('regexPatterns') || '[]');
+            
+            if (savedPatterns.length === 0) {
+                alert('No saved patterns found');
+                return;
+            }
+            
+            const patternNames = savedPatterns.map(p => p.name);
+            const patternName = prompt(`Enter pattern name to load:\n${patternNames.join('\n')}`);
+            
+            if (!patternName) return;
+            
+            const patternData = savedPatterns.find(p => p.name === patternName);
+            
+            if (patternData) {
+                currentPattern = patternData.pattern;
+                document.getElementById('globalFlag').checked = patternData.flags.includes('g');
+                document.getElementById('ignoreCaseFlag').checked = patternData.flags.includes('i');
+                document.getElementById('multilineFlag').checked = patternData.flags.includes('m');
+                document.getElementById('dotAllFlag').checked = patternData.flags.includes('s');
+                updateDisplay();
+                alert(`Pattern "${patternName}" loaded successfully!`);
+            } else {
+                alert(`Pattern "${patternName}" not found`);
+            }
+        }
+
+        function updateFromText() {
+            currentPattern = document.getElementById('regexTextInput').value;
+            patternHistory.push(currentPattern);
+            updateDisplay();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
